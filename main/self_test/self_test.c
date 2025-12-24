@@ -1,4 +1,5 @@
 #include <string.h>
+#include <inttypes.h>
 #include "driver/gpio.h"
 
 #include "esp_log.h"
@@ -475,7 +476,7 @@ void execute_production_test(void * pvParameters)
             // Log every 50 nonces to avoid watchdog
             if ((counter / 8) % 50 == 0) {
                 ESP_LOGI(TAG, "Nonce %lu diff %.2f", (unsigned long)asic_result->nonce, nonce_diff);
-                ESP_LOGI(TAG, "%.2f GH/s, duration %ums", hashrate, duration_ms);
+                ESP_LOGI(TAG, "%.2f GH/s, duration %"PRIu32"ms", hashrate, duration_ms);
             }
         }
     }
