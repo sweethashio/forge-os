@@ -1,4 +1,5 @@
 #include <string.h>
+#include <inttypes.h>
 #include <esp_heap_caps.h>
 #include "esp_log.h"
 #include "esp_timer.h"
@@ -79,10 +80,10 @@ static void update_hash_counter(uint32_t time_ms, uint32_t value, measurement_t 
         uint32_t duration_ms = time_ms - previous_time_ms;
         uint32_t counter = value - measurement[asic_nr].value; // Compute counter difference, handling uint32_t wraparound
         measurement[asic_nr].hashrate = hash_counter_to_ghs(duration_ms, counter);
-        ESP_LOGI(TAG, "ASIC %d: counter delta=%u, duration=%ums, hashrate=%.2f GH/s",
+        ESP_LOGI(TAG, "ASIC %d: counter delta=%"PRIu32", duration=%"PRIu32"ms, hashrate=%.2f GH/s",
                  asic_nr, counter, duration_ms, measurement[asic_nr].hashrate);
     } else {
-        ESP_LOGI(TAG, "ASIC %d: First measurement, storing value=0x%08X, time=%u",
+        ESP_LOGI(TAG, "ASIC %d: First measurement, storing value=0x%08"PRIX32", time=%"PRIu32,
                  asic_nr, value, time_ms);
     }
 
@@ -152,7 +153,7 @@ void hashrate_monitor_register_read(void *pvParameters, register_type_t register
     int asic_count = ASIC_get_asic_count(GLOBAL_STATE);
     int hash_domains = BM1370_HASH_DOMAINS;
 
-    ESP_LOGI(TAG, "Register read: type=%d, asic=%d, value=0x%08X", register_type, asic_nr, value);
+    ESP_LOGI(TAG, "Register read: type=%d, asic=%d, value=0x%08"PRIX32, register_type, asic_nr, value);
 
     if (asic_nr >= asic_count) {
         ESP_LOGE(TAG, "Asic nr out of bounds");
