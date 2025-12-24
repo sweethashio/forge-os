@@ -1,0 +1,42 @@
+#loading {
+    background-color: var(--maskbg);
+    left: 0;
+    right: 0;
+    bottom: 0;
+    top: 0;
+    position: fixed;
+    z-index: 99999999999999999999;
+}
+
+figure {
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0;
+}
+
+.icon-bitaxe {
+    width: 41px;
+    height: 60px;
+}
+.icon-fan {
+    width: 32px;
+    height: 32px;
+    margin: 24px 0 0;
+    position: absolute;
+
+    animation: rotation 1s infinite linear;
+    transform-box: fill-box;
+    transform-origin: center;
+    will-change: transform;
+}
+
+@keyframes rotation {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}

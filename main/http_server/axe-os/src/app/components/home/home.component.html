@@ -1,0 +1,304 @@
+<ng-template #loading>
+    <div class="flex align-items-center justify-content-center" style="min-height: 200px;">
+        <div class="text-center">
+            <i class="pi pi-spin pi-spinner text-4xl text-primary mb-3"></i>
+            <h4 class="text-500">Loading dashboard...</h4>
+        </div>
+    </div>
+</ng-template>
+
+<ng-container *ngIf="info$ | async as info; else loading">
+
+    <!-- Enhanced alert messages with modern styling -->
+    <p-message *ngIf="info.overheat_mode" severity="error"
+        styleClass="alert-message"
+        text="⚠️ BitForge has overheated - Check settings immediately">
+    </p-message>
+
+    <p-message *ngIf="!info.frequency || info.frequency < 400" severity="warn"
+        styleClass="alert-message"
+        text="⚡ BitForge frequency is set low - Optimize in settings">
+    </p-message>
+
+    <p-message *ngIf="info.power_fault" severity="error"
+        styleClass="alert-message"
+        text="🔌 {{info.power_fault}} - Check your Power Supply">
+    </p-message>
+
+    <!-- Key Metrics Grid -->
+    <div class="metrics-grid">
+        <div class="metric-card hash-rate">
+            <div class="metric-header">
+                <span class="metric-label">Hash Rate</span>
+                <i class="pi pi-chart-line metric-icon"></i>
+            </div>
+            <div class="metric-content">
+                <div class="metric-value" *ngIf="!info.power_fault">
+                    {{info.hashRate * 1000000000 | hashSuffix}}
+                </div>
+                <div class="metric-value unavailable" *ngIf="info.power_fault">
+                    Unavailable
+                </div>
+                <ng-container *ngIf="!info.power_fault">
+                    <div class="metric-details">
+                        <span class="metric-change">↗ {{calculateAverage(hashrateData) | hashSuffix}}</span>
+                        <span class="metric-period">avg last 5 mins</span>
+                    </div>
+                </ng-container>
+            </div>
+        </div>
+
+        <div class="metric-card efficiency">
+            <div class="metric-header">
+                <span class="metric-label">Efficiency</span>
+                <i class="pi pi-bolt metric-icon"></i>
+            </div>
+            <div class="metric-content">
+                <div class="metric-value" *ngIf="!info.power_fault">
+                    {{info.power / (info.hashRate/1000) | number: '1.2-2'}} J/TH
+                </div>
+                <div class="metric-value unavailable" *ngIf="info.power_fault">
+                    Unavailable
+                </div>
+                <ng-container *ngIf="!info.power_fault">
+                    <div class="metric-details">
+                        <span class="metric-change">↗ {{calculateEfficiencyAverage(hashrateData, powerData) | number: '1.2-2'}} J/TH</span>
+                        <span class="metric-period">avg last 30 min</span>
+                    </div>
+                </ng-container>
+            </div>
+        </div>
+
+        <div class="metric-card shares">
+            <div class="metric-header">
+                <span class="metric-label">Shares</span>
+                <i class="pi pi-share-alt metric-icon"></i>
+            </div>
+            <div class="metric-content">
+                <div class="metric-value">{{info.sharesAccepted | number: '1.0-0'}}</div>
+                <div class="metric-details">
+                    <span *ngIf="info.sharesRejected === 0" class="metric-status success">0 rejected</span>
+                    <div *ngIf="info.sharesRejected > 0">
+                        <div *ngFor="let sharesRejectedReason of info.sharesRejectedReasons" class="metric-status error">
+                            {{sharesRejectedReason.count | number: '1.0-0'}} {{sharesRejectedReason.message}}
+                            ({{(sharesRejectedReason.count / (info.sharesAccepted + info.sharesRejected) * 100) | number: '1.2-2'}}%)
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="metric-card difficulty">
+            <div class="metric-header">
+                <span class="metric-label">Best Difficulty</span>
+                <i class="pi pi-target metric-icon"></i>
+            </div>
+            <div class="metric-content">
+                <div class="metric-value">{{info.bestDiff}}</div>
+                <div class="metric-details">
+                    <span class="metric-period">all-time best</span>
+                    <span class="metric-change">{{info.bestSessionDiff}} since boot</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Performance Chart -->
+    <div class="chart-section" *ngIf="!info.power_fault">
+        <div class="chart-card">
+            <div class="chart-header">
+                <i class="pi pi-chart-line chart-icon"></i>
+                <span class="chart-title">Performance Overview</span>
+            </div>
+            <div class="chart-content">
+                <p-chart [data]="chartData" [options]="chartOptions"></p-chart>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Status Grid -->
+    <div class="status-grid">
+        <!-- Power Management -->
+        <div class="status-card power-card">
+            <div class="status-header">
+                <i class="pi pi-bolt status-icon"></i>
+                <span class="status-title">Power Management</span>
+            </div>
+            <div class="status-content">
+                <div class="status-item">
+                    <div class="status-item-header">
+                        <span>Power Consumption</span>
+                        <span class="status-value">{{info.power}}W</span>
+                    </div>
+                    <p-progressBar [value]="(info.power / info.maxPower) * 100" styleClass="custom-progress">
+                        <ng-template pTemplate="content" let-value></ng-template>
+                    </p-progressBar>
+                </div>
+
+                <div class="status-item">
+                    <div class="status-item-header">
+                        <span>Input Voltage</span>
+                        <span class="status-value">{{info.voltage}}V</span>
+                    </div>
+                    <div class="progress-container">
+                        <p-progressBar [value]="(info.voltage / (info.nominalVoltage + .5)) * 100" styleClass="custom-progress">
+                            <ng-template pTemplate="content" let-value></ng-template>
+                        </p-progressBar>
+                        <div class="voltage-marker" [style.left]="(info.nominalVoltage / (info.nominalVoltage + .5)) * 100 + '%'">
+                            <span class="marker-label">{{info.nominalVoltage}}V</span>
+                        </div>
+                    </div>
+                    <div class="status-warning" *ngIf="info.voltage < (info.nominalVoltage + .5) * 0.87">
+                        ⚠️ Low voltage detected
+                    </div>
+                </div>
+
+                <div class="status-item">
+                    <div class="status-item-header">
+                        <span>ASIC Frequency</span>
+                        <span class="status-value">{{info.frequency}} MHz</span>
+                    </div>
+                    <p-progressBar [value]="(info.frequency / maxFrequency) * 100" styleClass="custom-progress">
+                        <ng-template pTemplate="content" let-value></ng-template>
+                    </p-progressBar>
+                </div>
+
+                <div class="status-item">
+                    <div class="status-item-header">
+                        <span>Measured ASIC Voltage</span>
+                        <span class="status-value">{{info.coreVoltageActual}}V</span>
+                    </div>
+                    <p-progressBar [value]="(info.coreVoltageActual / 1.8) * 100" styleClass="custom-progress">
+                        <ng-template pTemplate="content" let-value></ng-template>
+                    </p-progressBar>
+                </div>
+            </div>
+        </div>
+
+        <!-- Temperature Monitoring -->
+        <div class="status-card temperature-card">
+            <div class="status-header">
+                <i class="pi pi-sun status-icon"></i>
+                <span class="status-title">Temperature Monitoring</span>
+            </div>
+            <div class="status-content">
+                <div class="status-item">
+                    <div class="status-item-header">
+                        <span>ASIC 1 Chip Temperature</span>
+                        <span class="status-value">
+                            <ng-container *ngIf="info.chiptemp1 && info.chiptemp1 > 0; else noTemp1">
+                                {{info.chiptemp1}}°C
+                            </ng-container>
+                            <ng-template #noTemp1>--</ng-template>
+                        </span>
+                    </div>
+                    <p-progressBar [value]="((info.chiptemp1 || 0) / maxTemp) * 100" styleClass="custom-progress">
+                        <ng-template pTemplate="content" let-value></ng-template>
+                    </p-progressBar>
+                    <div class="status-warning" *ngIf="info.chiptemp1 && info.chiptemp1 >= 70">
+                        🔥 High temperature warning
+                    </div>
+                </div>
+
+                <div class="status-item">
+                    <div class="status-item-header">
+                        <span>ASIC 2 Chip Temperature</span>
+                        <span class="status-value">
+                            <ng-container *ngIf="info.chiptemp2 && info.chiptemp2 > 0; else noTemp2">
+                                {{info.chiptemp2}}°C
+                            </ng-container>
+                            <ng-template #noTemp2>--</ng-template>
+                        </span>
+                    </div>
+                    <p-progressBar [value]="((info.chiptemp2 || 0) / maxTemp) * 100" styleClass="custom-progress">
+                        <ng-template pTemplate="content" let-value></ng-template>
+                    </p-progressBar>
+                    <div class="status-warning" *ngIf="info.chiptemp2 && info.chiptemp2 >= 70">
+                        🔥 High temperature warning
+                    </div>
+                </div>
+
+                <div class="status-item" *ngIf="info.vrTemp > 0">
+                    <div class="status-item-header">
+                        <span>Voltage Regulator Temp</span>
+                        <span class="status-value">{{info.vrTemp}}°C</span>
+                    </div>
+                    <p-progressBar [value]="(info.vrTemp / 120) * 100" styleClass="custom-progress">
+                        <ng-template pTemplate="content" let-value></ng-template>
+                    </p-progressBar>
+                    <div class="status-warning" *ngIf="info.vrTemp >= 105">
+                        🔥 Critical VR temperature
+                    </div>
+                </div>
+
+                <div class="status-item">
+                    <div class="status-item-header">
+                        <span>Fan Speed</span>
+                        <span class="status-value">{{info.fanspeed}}% ({{info.fanrpm}} RPM)</span>
+                    </div>
+                    <p-progressBar [value]="info.fanspeed" styleClass="custom-progress">
+                        <ng-template pTemplate="content" let-value></ng-template>
+                    </p-progressBar>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pool Information & Uptime -->
+    <div class="info-grid">
+        <div class="info-card pool-card">
+            <div class="info-header">
+                <i class="pi pi-wifi info-icon"></i>
+                <span class="info-title">Pool Information</span>
+            </div>
+            <div class="info-content">
+                <div class="pool-info">
+                    <ng-container *ngIf="!info.isUsingFallbackStratum">
+                        <div class="info-item">
+                            <span class="info-label">URL</span>
+                            <a [href]="(quickLink$ | async)" target="_blank" class="info-link">{{info.stratumURL}}</a>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Port</span>
+                            <span class="info-value">{{info.stratumPort}}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">User</span>
+                            <span class="info-value">{{info.stratumUser | truncateMiddle:10:8}}</span>
+                        </div>
+                    </ng-container>
+                    <ng-container *ngIf="info.isUsingFallbackStratum">
+                        <div class="info-item">
+                            <span class="info-label">URL</span>
+                            <a [href]="(fallbackQuickLink$ | async) || info.fallbackStratumURL" target="_blank" class="info-link">
+                                {{info.fallbackStratumURL}}
+                            </a>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Port</span>
+                            <span class="info-value">{{info.fallbackStratumPort}}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">User</span>
+                            <span class="info-value">{{info.fallbackStratumUser | truncateMiddle:10:8}}</span>
+                        </div>
+                    </ng-container>
+                </div>
+            </div>
+        </div>
+
+        <div class="info-card uptime-card">
+            <div class="info-header">
+                <i class="pi pi-chart-line info-icon"></i>
+                <span class="info-title">System Uptime</span>
+            </div>
+            <div class="info-content">
+                <div class="uptime-display">
+                    <div class="uptime-value">{{info.uptimeSeconds | dateAgo}}</div>
+                    <div class="uptime-label">Current session uptime</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</ng-container>

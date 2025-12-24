@@ -1,0 +1,34 @@
+@import "_mixins";
+@import "_colors";
+
+
+@layer primeng {
+  @import "_common";
+
+  //Input
+  @import "./components/input/_checkbox";
+  @import "./components/input/_dropdown";
+  @import "./components/input/_inputgroup";
+  @import "./components/input/_inputtext";
+  @import "./components/input/_slider";
+
+  //Button
+  @import "./components/button/_button";
+
+
+
+  //Overlay
+  @import "./components/overlay/_sidebar";
+  @import "./components/overlay/_tooltip";
+
+  //File
+  @import "./components/file/_fileupload";
+
+
+  //Messages
+  @import "./components/messages/_message";
+
+
+  //Misc
+  @import "./components/misc/_progressbar";
+}

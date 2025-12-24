@@ -1,0 +1,23 @@
+<div class="layout-topbar">
+    <!-- Dashboard Header -->
+    <div class="dashboard-header">
+        <div class="header-content">
+            <h1 class="dashboard-title">ForgeOS Dashboard</h1>
+            <p class="dashboard-subtitle">Monitor your mining operations in real-time</p>
+        </div>
+        <div class="header-status" *ngIf="info$ | async as info">
+            <div class="status-badge" [ngClass]="getPerformanceMode(info).class">
+                <div class="status-dot"></div>
+                {{ getPerformanceMode(info).label }}
+            </div>
+            <button class="restart-btn-header" (click)="restart()">
+                <i class="pi pi-refresh"></i>
+                Restart
+            </button>
+        </div>
+    </div>
+
+    <button *ngIf="!isAPMode" #menubutton class="p-link layout-menu-button layout-topbar-button" (click)="layoutService.onMenuToggle()">
+        <i class="pi pi-bars"></i>
+    </button>
+</div>

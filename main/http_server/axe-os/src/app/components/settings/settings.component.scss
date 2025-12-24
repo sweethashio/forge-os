@@ -1,0 +1,317 @@
+// CSS Custom Properties - Matching home component
+:host {
+  --card-bg: rgba(30, 41, 59, 0.5);
+  --card-border: rgba(51, 65, 85, 0.3);
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --success-color: #10b981;
+  --error-color: #ef4444;
+  --warning-color: #f59e0b;
+  --primary-gradient: linear-gradient(135deg, #6366f1, #06b6d4);
+
+  display: block;
+  padding-top: 2rem;
+}
+
+// Base card styles - Matching home component
+%base-card {
+  background: var(--card-bg);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--card-border);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+  }
+}
+
+// Override PrimeNG card styles
+::ng-deep .p-card {
+  @extend %base-card;
+  margin-bottom: 1.5rem;
+
+  .p-card-header {
+    background: transparent;
+    border-bottom: 1px solid var(--card-border);
+    padding: 1rem 1.5rem;
+  }
+
+  .p-card-content, .p-card-body {
+    background: transparent;
+    color: var(--text-primary);
+    padding: 1.5rem;
+  }
+
+  .p-card-title, h2, h5 {
+    color: var(--text-primary);
+    font-weight: 600;
+    margin-bottom: 1rem;
+  }
+
+  .p-card-title {
+    font-size: 1.5rem;
+  }
+
+  h2 {
+    font-size: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  h5 {
+    font-size: 1rem;
+    color: var(--text-secondary);
+  }
+
+  small {
+    color: var(--text-muted);
+    font-size: 0.875rem;
+    display: block;
+    margin-top: 0.5rem;
+  }
+}
+
+// Settings Grid Layout
+.settings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+// Version and Update Cards
+.version-card, .update-card {
+  @extend %base-card;
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: var(--primary-gradient);
+  }
+}
+
+.version-card::before {
+  background: linear-gradient(135deg, #14b8a6, #06b6d4);
+}
+
+.update-card::before {
+  background: linear-gradient(135deg, #f59e0b, #eab308);
+}
+
+// Form Elements Styling
+input[type="text"],
+input[type="number"],
+input[type="password"],
+input[type="range"] {
+  min-width: 250px;
+  max-width: 90%;
+  background: rgba(30, 41, 59, 0.8);
+  border: 1px solid var(--card-border);
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+  color: var(--text-primary);
+  transition: all 0.3s ease;
+
+  &:focus {
+    outline: none;
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+  }
+
+  &::placeholder {
+    color: var(--text-muted);
+  }
+}
+
+select {
+  min-width: 268px;
+  max-width: 90%;
+  background: rgba(30, 41, 59, 0.8);
+  border: 1px solid var(--card-border);
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+  color: var(--text-primary);
+  transition: all 0.3s ease;
+
+  &:focus {
+    outline: none;
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+  }
+
+  option {
+    background: rgba(30, 41, 59, 0.95);
+    color: var(--text-primary);
+  }
+}
+
+// Button Styling Override
+::ng-deep .p-button {
+  background: var(--primary-gradient);
+  border: none;
+  border-radius: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+// FileUpload Styling
+::ng-deep .p-fileupload {
+  .p-button {
+    background: var(--primary-gradient);
+    border: none;
+    border-radius: 0.5rem;
+
+    &:hover {
+      background: linear-gradient(135deg, #5855f1, #059baa);
+    }
+  }
+}
+
+// Progress Bar for Updates
+.update-progress {
+  margin-top: 1rem;
+
+  ::ng-deep .p-progressbar {
+    background: rgba(30, 41, 59, 0.8);
+    border-radius: 0.5rem;
+    height: 0.5rem;
+
+    .p-progressbar-value {
+      background: var(--primary-gradient);
+      border-radius: 0.5rem;
+    }
+  }
+}
+
+// Links
+a {
+  color: #6366f1;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.3s ease;
+
+  &:hover {
+    color: #06b6d4;
+    text-decoration: underline;
+  }
+}
+
+// Status badges for versions
+.version-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border: 1px solid;
+
+  &.current {
+    background: rgba(16, 185, 129, 0.1);
+    border-color: rgba(16, 185, 129, 0.3);
+    color: #10b981;
+  }
+
+  &.update-available {
+    background: rgba(245, 158, 11, 0.1);
+    border-color: rgba(245, 158, 11, 0.3);
+    color: #f59e0b;
+  }
+}
+
+// Restart section
+.restart {
+  margin-bottom: 1.5rem;
+  @extend %base-card;
+}
+
+// Asset links styling
+.asset-links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 1rem;
+
+  a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    background: rgba(99, 102, 241, 0.1);
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    border-radius: 0.375rem;
+    color: #6366f1;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.3s ease;
+
+    &:hover {
+      background: rgba(99, 102, 241, 0.2);
+      transform: translateX(4px);
+    }
+
+    &::before {
+      content: '↓';
+      font-weight: bold;
+    }
+  }
+}
+
+// Responsive Design
+@media only screen and (min-width: 900px) {
+  input[type="text"],
+  input[type="password"],
+  input[type="number"],
+  input[type="range"] {
+    min-width: 500px;
+  }
+
+  select {
+    min-width: 518px;
+  }
+
+  .settings-grid {
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .settings-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .version-card, .update-card {
+    padding: 1rem;
+  }
+
+  input[type="text"],
+  input[type="password"],
+  input[type="number"],
+  input[type="range"],
+  select {
+    min-width: 100%;
+    max-width: 100%;
+  }
+}

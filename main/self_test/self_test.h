@@ -1,0 +1,17 @@
+#ifndef SELF_TEST_H_
+#define SELF_TEST_H_
+
+#include "global_state.h"
+
+typedef enum test_failed_cause
+{
+  NO_FAILURE = -1,
+  PERIPHERAL_FAILURE = 0,
+  ASIC_FAILURE = 10,
+  POWER_FAILURE = 20
+} TEST_FAILED_CAUSE;
+
+void execute_production_test(void * pvParameters);
+bool production_test(GlobalState * GLOBAL_STATE);
+
+#endif

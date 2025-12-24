@@ -1,0 +1,28 @@
+<div class="menu-items">
+    <ng-container *ngFor="let item of model; let i = index;">
+        <ng-container *ngIf="item.items && !item.separator">
+            <ng-container *ngFor="let subItem of item.items">
+                <button 
+                    class="menu-item"
+                    [class.active]="isActive(subItem.routerLink)"
+                    (click)="navigateOrExecute(subItem)"
+                    type="button">
+                    <i [class]="subItem.icon" class="menu-icon"></i>
+                    <span class="menu-label">{{subItem.label}}</span>
+                </button>
+            </ng-container>
+        </ng-container>
+        <div *ngIf="item.separator" class="menu-separator"></div>
+    </ng-container>
+</div>
+
+<!-- Restart Button -->
+<div class="restart-section">
+    <button 
+        class="restart-button"
+        (click)="restart()" 
+        type="button">
+        <i class="pi pi-refresh menu-icon"></i>
+        <span>Restart System</span>
+    </button>
+</div>

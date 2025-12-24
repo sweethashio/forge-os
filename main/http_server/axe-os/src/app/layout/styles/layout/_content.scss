@@ -1,0 +1,22 @@
+.layout-main-container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    justify-content: space-between;
+    margin-left: 256px;
+    padding: 0;
+    transition: margin-left $transitionDuration;
+    background: #0f172a;
+
+    @media (max-width: 768px) {
+        margin-left: 0;
+        padding: 1rem;
+    }
+}
+
+.layout-main {
+    flex: 1 1 auto;
+    padding: 1.5rem;
+    padding-top: 8rem; // Account for topbar with dashboard header
+    min-height: calc(100vh - 8rem);
+}
