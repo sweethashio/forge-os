@@ -30,7 +30,7 @@ void ASIC_result_task(void *pvParameters)
         // Check if this is a register response
         if (asic_result->register_type != REGISTER_INVALID)
         {
-            ESP_LOGI(TAG, "Register response detected: type=%d, asic=%d, value=0x%08X",
+            ESP_LOGD(TAG, "Register response detected: type=%d, asic=%d, value=0x%08X",
                      asic_result->register_type, asic_result->asic_nr, asic_result->value);
             // Call hashrate monitor callback
             if (GLOBAL_STATE->HASHRATE_MONITOR_MODULE.is_initialized)
@@ -57,7 +57,7 @@ void ASIC_result_task(void *pvParameters)
             asic_result->rolled_version);
 
         //log the ASIC response
-        ESP_LOGI(TAG, "Ver: %08" PRIX32 " Nonce %08" PRIX32 " diff %.1f of %ld.", asic_result->rolled_version, asic_result->nonce, nonce_diff, GLOBAL_STATE->ASIC_TASK_MODULE.active_jobs[job_id]->pool_diff);
+        ESP_LOGD(TAG, "Ver: %08" PRIX32 " Nonce %08" PRIX32 " diff %.1f of %ld.", asic_result->rolled_version, asic_result->nonce, nonce_diff, GLOBAL_STATE->ASIC_TASK_MODULE.active_jobs[job_id]->pool_diff);
 
         if (nonce_diff >= GLOBAL_STATE->ASIC_TASK_MODULE.active_jobs[job_id]->pool_diff)
         {

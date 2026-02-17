@@ -163,7 +163,7 @@ static uint32_t extract_origin_ip_addr(char *origin)
 static esp_err_t is_network_allowed(httpd_req_t * req)
 {
     if (GLOBAL_STATE->SYSTEM_MODULE.ap_enabled == true) {
-        ESP_LOGI(CORS_TAG, "Device in AP mode. Allowing CORS.");
+        ESP_LOGD(CORS_TAG, "Device in AP mode. Allowing CORS.");
         return ESP_OK;
     }
 
@@ -200,7 +200,7 @@ static esp_err_t is_network_allowed(httpd_req_t * req)
         return ESP_OK;
     }
 
-    ESP_LOGI(CORS_TAG, "Client is NOT in the private ip ranges or same range as server.");
+    ESP_LOGW(CORS_TAG, "Client is NOT in the private ip ranges or same range as server.");
     return ESP_FAIL;
 }
 
@@ -631,7 +631,7 @@ static esp_err_t GET_system_info(httpd_req_t * req)
     cJSON_AddNumberToObject(root, "maxPower", Power_get_max_settings(GLOBAL_STATE));
     cJSON_AddNumberToObject(root, "nominalVoltage", Power_get_nominal_voltage(GLOBAL_STATE));
     cJSON_AddNumberToObject(root, "hashRate", GLOBAL_STATE->HASHRATE_MONITOR_MODULE.hashrate);
-    cJSON_AddStringToObject(root, "bestDiff", GLOBAL_STATE->SYSTEM_MODULE.best_diff_string);
+    cJSON_AddNumberToObject(root, "bestDiff", GLOBAL_STATE->SYSTEM_MODULE.best_nonce_diff);
     cJSON_AddStringToObject(root, "bestSessionDiff", GLOBAL_STATE->SYSTEM_MODULE.best_session_diff_string);
     cJSON_AddNumberToObject(root, "stratumDiff", GLOBAL_STATE->stratum_difficulty);
 

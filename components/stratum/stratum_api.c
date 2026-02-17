@@ -380,7 +380,7 @@ static void debug_stratum_tx(const char * msg)
     if (newline != NULL) {
         *newline = '\0';
     }
-    ESP_LOGI(TAG, "tx: %s", msg);
+    ESP_LOGD(TAG, "tx: %s", msg);
 
     //put it back!
     if (newline != NULL) {
