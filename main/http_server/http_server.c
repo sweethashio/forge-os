@@ -711,6 +711,37 @@ static esp_err_t GET_system_info(httpd_req_t * req)
     return ESP_OK;
 }
 
+/* Handler for system ASIC info endpoint */
+static esp_err_t GET_system_asic(httpd_req_t * req)
+{
+    if (is_network_allowed(req) != ESP_OK) {
+        return httpd_resp_send_err(req, HTTPD_401_UNAUTHORIZED, "Unauthorized");
+    }
+
+    httpd_resp_set_type(req, "application/json");
+
+    // Set CORS headers
+    if (set_cors_headers(req) != ESP_OK) {
+        httpd_resp_send_500(req);
+        return ESP_OK;
+    }
+
+    cJSON * root = cJSON_CreateObject();
+
+    cJSON_AddStringToObject(root, "ASICModel", GLOBAL_STATE->asic_model_str);
+    cJSON_AddStringToObject(root, "deviceModel", GLOBAL_STATE->device_model_str);
+    cJSON_AddNumberToObject(root, "asicCount", ASIC_get_asic_count(GLOBAL_STATE));
+    cJSON_AddNumberToObject(root, "smallCoreCount", ASIC_get_small_core_count(GLOBAL_STATE));
+    cJSON_AddNumberToObject(root, "defaultFrequency", CONFIG_ASIC_FREQUENCY);
+    cJSON_AddNumberToObject(root, "defaultVoltage", CONFIG_ASIC_VOLTAGE);
+
+    const char * response = cJSON_Print(root);
+    httpd_resp_sendstr(req, response);
+    free((void *)response);
+    cJSON_Delete(root);
+    return ESP_OK;
+}
+
 esp_err_t POST_WWW_update(httpd_req_t * req)
 {
     if (is_network_allowed(req) != ESP_OK) {
@@ -1019,6 +1050,23 @@ esp_err_t start_rest_server(void * pvParameters)
         .user_ctx = rest_context
     };
     httpd_register_uri_handler(server, &system_info_get_uri);
+
+    /* URI handler for fetching ASIC info */
+    httpd_uri_t system_asic_get_uri = {
+        .uri = "/api/system/asic",
+        .method = HTTP_GET,
+        .handler = GET_system_asic,
+        .user_ctx = rest_context
+    };
+    httpd_register_uri_handler(server, &system_asic_get_uri);
+
+    httpd_uri_t system_asic_options_uri = {
+        .uri = "/api/system/asic",
+        .method = HTTP_OPTIONS,
+        .handler = handle_options_request,
+        .user_ctx = NULL
+    };
+    httpd_register_uri_handler(server, &system_asic_options_uri);
 
     /* URI handler for WiFi scan */
     httpd_uri_t wifi_scan_get_uri = {
