@@ -94,7 +94,7 @@
                 <i class="pi pi-target metric-icon"></i>
             </div>
             <div class="metric-content">
-                <div class="metric-value">{{info.bestDiff}}</div>
+                <div class="metric-value">{{info.bestDiff | diffSuffix}}</div>
                 <div class="metric-details">
                     <span class="metric-period">all-time best</span>
                     <span class="metric-change">{{info.bestSessionDiff}} since boot</span>
