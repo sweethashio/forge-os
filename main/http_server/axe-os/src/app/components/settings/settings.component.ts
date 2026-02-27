@@ -71,16 +71,16 @@ export class SettingsComponent {
           coreVoltage: [info.coreVoltage, [Validators.required]],
           frequency: [info.frequency, [Validators.required]],
           autofanspeed: [info.autofanspeed == 1, [Validators.required]],
-          fanspeed: [info.fanspeed, [Validators.required]],
+          manualFanSpeed: [info.manualFanSpeed, [Validators.required]],
         });
 
         this.form.controls['autofanspeed'].valueChanges.pipe(
           startWith(this.form.controls['autofanspeed'].value)
         ).subscribe(autofanspeed => {
           if (autofanspeed) {
-            this.form.controls['fanspeed'].disable();
+            this.form.controls['manualFanSpeed'].disable();
           } else {
-            this.form.controls['fanspeed'].enable();
+            this.form.controls['manualFanSpeed'].enable();
           }
         });
       });

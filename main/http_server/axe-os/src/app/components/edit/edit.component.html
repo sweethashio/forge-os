@@ -75,12 +75,12 @@
 
         <div *ngIf="form.controls['autofanspeed'].value != true">
             <div class="col-12" *ngIf="form.controls['autofanspeed'].value != true">
-                <label>Fan Speed {{form.controls['fanspeed'].value}}%
-                    <b *ngIf="form.controls['fanspeed'].value < 33" style="color:red">Danger: Could Cause
-                        Overheating</b> <b *ngIf="form.controls['fanspeed'].value == 100" style="color:	#F2A900">S19
+                <label>Fan Speed {{form.controls['manualFanSpeed'].value}}%
+                    <b *ngIf="form.controls['manualFanSpeed'].value < 33" style="color:red">Danger: Could Cause
+                        Overheating</b> <b *ngIf="form.controls['manualFanSpeed'].value == 100" style="color:	#F2A900">S19
                         Simulator</b></label>
 
-                <p-slider formControlName="fanspeed"></p-slider>
+                <p-slider formControlName="manualFanSpeed"></p-slider>
             </div>
         </div>
 

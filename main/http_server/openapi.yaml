@@ -87,7 +87,7 @@ components:
         - fallbackStratumURL
         - fallbackStratumUser
         - fanrpm
-        - fanspeed
+        - fanSpeed
         - flipscreen
         - freeHeap
         - frequency
@@ -159,7 +159,7 @@ components:
         fanrpm:
           type: number
           description: Current fan speed in RPM
-        fanspeed:
+        fanSpeed:
           type: number
           description: Current fan speed percentage
         flipscreen:
@@ -359,7 +359,7 @@ components:
           enum: [0, 1]
           examples:
             - 1
-        fanspeed:
+        fanSpeed:
           type: integer
           description: Manual fan speed percentage when autofanspeed is disabled
           minimum: 0
