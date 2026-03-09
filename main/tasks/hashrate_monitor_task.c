@@ -159,7 +159,6 @@ void hashrate_monitor_task(void *pvParameters)
 
         pthread_mutex_lock(&HASHRATE_MONITOR_MODULE->measurement_lock);
         float hashrate = sum_hashrates(HASHRATE_MONITOR_MODULE->total_measurement, asic_count);
-        float error_hashrate = sum_hashrates(HASHRATE_MONITOR_MODULE->error_measurement, asic_count);
         uint32_t error_count = sum_values(HASHRATE_MONITOR_MODULE->error_measurement, asic_count);
         pthread_mutex_unlock(&HASHRATE_MONITOR_MODULE->measurement_lock);
 
@@ -177,10 +176,6 @@ void hashrate_monitor_task(void *pvParameters)
                 ESP_LOGI(TAG, "EMA hashrate: %.2f GH/s", HASHRATE_MONITOR_MODULE->hashrate);
             }
         }
-
-        HASHRATE_MONITOR_MODULE->error_percentage = HASHRATE_MONITOR_MODULE->hashrate > 0
-            ? error_hashrate / HASHRATE_MONITOR_MODULE->hashrate * 100.0f
-            : 0.0f;
 
         HASHRATE_MONITOR_MODULE->error_count = error_count;
 
