@@ -9,15 +9,15 @@ export const ApModeGuard: CanActivateFn = (): Observable<boolean> => {
 
   return systemService.getInfo().pipe(
     map(info => {
-      // Backend detects which network the request came from (works with captive portals!)
       const requestFromAp = (info as any).requestFromAp || false;
       const isWifiConnected = info.wifiStatus && info.wifiStatus.includes('Connected');
-      
+
       if (info.apEnabled && !isWifiConnected) {
         // AP mode only (no WiFi configured) - show setup page
         router.navigate(['/ap']);
         return false;
-      } else if (info.apEnabled && isWifiConnected && requestFromAp) {
+      } else if (requestFromAp && info.apEnabled && isWifiConnected) {
+        // Only redirect to ipinfo if backend confirms request is from AP subnet
         window.location.href = '/ipinfo';
         return false;
       }
