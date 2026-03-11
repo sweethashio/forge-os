@@ -62,7 +62,8 @@ export class SystemService {
           idfVersion: "v5.1.2",
           boardVersion: "204",
           autofanspeed: 1,
-          fanspeed: 100,
+          fanSpeed: 100,
+          manualFanSpeed: 100,
           fanrpm: 3333,
 
           chiptemp1: 30,
