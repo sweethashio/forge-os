@@ -113,6 +113,7 @@ void hashrate_monitor_task(void *pvParameters)
         measurement_t* data = malloc(asic_count * hash_domains * sizeof(measurement_t));
         if (data == NULL) {
             ESP_LOGE(TAG, "Failed to allocate domain measurement data");
+            free(HASHRATE_MONITOR_MODULE->total_measurement);
             vTaskDelete(NULL);
             return;
         }
@@ -139,6 +140,11 @@ void hashrate_monitor_task(void *pvParameters)
     }
     if (HASHRATE_MONITOR_MODULE->error_measurement == NULL) {
         ESP_LOGE(TAG, "Failed to allocate error_measurement");
+        if (hash_domains > 0) {
+            free(HASHRATE_MONITOR_MODULE->domain_measurements[0]);
+            free(HASHRATE_MONITOR_MODULE->domain_measurements);
+        }
+        free(HASHRATE_MONITOR_MODULE->total_measurement);
         vTaskDelete(NULL);
         return;
     }

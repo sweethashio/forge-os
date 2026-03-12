@@ -103,7 +103,11 @@ char * STRATUM_V1_receive_jsonrpc_line(int sockfd)
     line = strdup(tok);
     int len = strlen(line);
     if (buflen > len + 1)
-        memmove(json_rpc_buffer, json_rpc_buffer + len + 1, buflen - len - 1);
+    {
+        size_t remaining = buflen - len - 1;
+        memmove(json_rpc_buffer, json_rpc_buffer + len + 1, remaining);
+        json_rpc_buffer[remaining] = '\0';
+    }
     else
         strcpy(json_rpc_buffer, "");
     return line;

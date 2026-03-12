@@ -330,11 +330,10 @@ void stratum_task(void * pvParameters)
                 GLOBAL_STATE->version_mask = stratum_api_v1_message.version_mask;
                 GLOBAL_STATE->new_stratum_version_rolling_msg = true;
             } else if (stratum_api_v1_message.method == STRATUM_RESULT_SUBSCRIBE) {
-                if (GLOBAL_STATE->extranonce_str) {
-                    free(GLOBAL_STATE->extranonce_str);
-                }
+                char *old_extranonce = GLOBAL_STATE->extranonce_str;
                 GLOBAL_STATE->extranonce_str = stratum_api_v1_message.extranonce_str;
                 GLOBAL_STATE->extranonce_2_len = stratum_api_v1_message.extranonce_2_len;
+                free(old_extranonce);
             } else if (stratum_api_v1_message.method == CLIENT_RECONNECT) {
                 ESP_LOGE(TAG, "Pool requested client reconnect...");
                 stratum_close_connection(GLOBAL_STATE);
