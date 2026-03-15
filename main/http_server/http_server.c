@@ -85,6 +85,35 @@ static esp_err_t GET_wifi_scan(httpd_req_t *req)
 
 static GlobalState * GLOBAL_STATE;
 static httpd_handle_t server = NULL;
+
+// Check if an HTTP request arrived on the AP network interface
+// by comparing the socket's local address against the AP interface IP
+static bool is_request_from_ap(httpd_req_t *req)
+{
+    esp_netif_t *ap_netif = esp_netif_get_handle_from_ifkey("WIFI_AP_DEF");
+    if (ap_netif == NULL) {
+        return false;
+    }
+
+    esp_netif_ip_info_t ap_ip_info;
+    if (esp_netif_get_ip_info(ap_netif, &ap_ip_info) != ESP_OK) {
+        return false;
+    }
+
+    int sockfd = httpd_req_to_sockfd(req);
+    struct sockaddr_in6 local_addr;
+    socklen_t addr_size = sizeof(local_addr);
+
+    // Use getsockname to get the LOCAL address (which interface the request arrived on)
+    if (getsockname(sockfd, (struct sockaddr *)&local_addr, &addr_size) != 0) {
+        return false;
+    }
+
+    uint32_t local_ip = local_addr.sin6_addr.un.u32_addr[3];
+    // If the socket's local IP matches the AP interface IP, the request came via the AP
+    return local_ip == ap_ip_info.ip.addr;
+}
+
 QueueHandle_t log_queue = NULL;
 
 static int fd = -1;
@@ -320,13 +349,21 @@ static esp_err_t GET_ap_info(httpd_req_t *req)
     return ESP_OK;
 }
 
-/* Handler for AP status page */
+/* Handler for AP status page - only accessible from AP network */
 static esp_err_t rest_ap_page_handler(httpd_req_t *req)
 {
+    if (!GLOBAL_STATE->SYSTEM_MODULE.ap_enabled || !is_request_from_ap(req)) {
+        // Not from AP network - redirect to main web interface
+        httpd_resp_set_status(req, "302 Temporary Redirect");
+        httpd_resp_set_hdr(req, "Location", "/");
+        httpd_resp_send(req, "Redirecting", HTTPD_RESP_USE_STRLEN);
+        return ESP_OK;
+    }
+
     extern const unsigned char ap_page_start[] asm("_binary_ap_page_html_start");
     extern const unsigned char ap_page_end[] asm("_binary_ap_page_html_end");
     const size_t ap_page_size = (ap_page_end - ap_page_start);
-    
+
     httpd_resp_set_type(req, "text/html");
     httpd_resp_send(req, (const char*)ap_page_start, ap_page_size);
     return ESP_OK;
@@ -603,20 +640,8 @@ static esp_err_t GET_system_info(httpd_req_t * req)
         return ESP_OK;
     }
 
-    // Detect if request is coming from AP network (192.168.4.x)
-    int sockfd = httpd_req_to_sockfd(req);
-    struct sockaddr_in6 addr;
-    socklen_t addr_size = sizeof(addr);
-    bool request_from_ap = false;
-    
-    if (getpeername(sockfd, (struct sockaddr *)&addr, &addr_size) == 0) {
-        uint32_t client_ip = addr.sin6_addr.un.u32_addr[3];
-        uint32_t ip_host_order = ntohl(client_ip);
-        // Check if IP is in 192.168.4.0/24 range (AP network)
-        if ((ip_host_order & 0xFFFFFF00) == 0xC0A80400) {  // 192.168.4.x
-            request_from_ap = true;
-        }
-    }
+    // Detect if request is coming from AP network using actual AP netif subnet
+    bool request_from_ap = is_request_from_ap(req);
 
 
     char * ssid = nvs_config_get_string(NVS_CONFIG_WIFI_SSID, CONFIG_ESP_WIFI_SSID);
