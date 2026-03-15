@@ -8,6 +8,8 @@
 
 -->
 
+![Alt](https://repobeats.axiom.co/api/embed/2db689d8aedc1d49b807526f0930aff59f151fad.svg "Repobeats analytics image")
+
 # Forge-OS
 Forge-OS is a fork of the origional esp-miner it's open source firmware can be found here [ESP-Miner](https://github.com/bitaxeorg/esp-miner)
 
