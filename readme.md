@@ -7,7 +7,7 @@
 ![Alt](https://repobeats.axiom.co/api/embed/9830d39ca088153c7db39a7c0e1645c62a0454fd.svg "Repobeats analytics image")
 
 -->
-
+![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/wantclue/forge-os/total)
 ![Alt](https://repobeats.axiom.co/api/embed/2db689d8aedc1d49b807526f0930aff59f151fad.svg "Repobeats analytics image")
 
 # Forge-OS
