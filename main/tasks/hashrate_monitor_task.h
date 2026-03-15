@@ -2,6 +2,7 @@
 #define HASHRATE_MONITOR_TASK_H_
 
 #include "common.h"
+#include <pthread.h>
 
 typedef struct {
     uint32_t value;
@@ -17,6 +18,7 @@ typedef struct {
     float hashrate;
     int error_count;
     bool is_initialized;
+    pthread_mutex_t measurement_lock;
 } HashrateMonitorModule;
 
 void hashrate_monitor_task(void *pvParameters);

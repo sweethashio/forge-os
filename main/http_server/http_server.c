@@ -73,10 +73,13 @@ static esp_err_t GET_wifi_scan(httpd_req_t *req)
     cJSON_AddItemToObject(root, "networks", networks);
 
     const char *response = cJSON_Print(root);
-    httpd_resp_sendstr(req, response);
-
-    free((void *)response);
     cJSON_Delete(root);
+    if (response == NULL) {
+        httpd_resp_send_500(req);
+        return ESP_OK;
+    }
+    httpd_resp_sendstr(req, response);
+    free((void *)response);
     return ESP_OK;
 }
 
@@ -307,10 +310,13 @@ static esp_err_t GET_ap_info(httpd_req_t *req)
     cJSON_AddStringToObject(root, "wifiStatus", GLOBAL_STATE->SYSTEM_MODULE.wifi_status);
     
     const char *response = cJSON_Print(root);
-    httpd_resp_sendstr(req, response);
-    
-    free((void *)response);
     cJSON_Delete(root);
+    if (response == NULL) {
+        httpd_resp_send_500(req);
+        return ESP_OK;
+    }
+    httpd_resp_sendstr(req, response);
+    free((void *)response);
     return ESP_OK;
 }
 
@@ -362,9 +368,13 @@ static esp_err_t rest_api_common_handler(httpd_req_t * req)
     cJSON_AddStringToObject(root, "message", "The requested API endpoint does not exist");
 
     const char * response = cJSON_Print(root);
+    cJSON_Delete(root);
+    if (response == NULL) {
+        httpd_resp_send_500(req);
+        return ESP_OK;
+    }
     httpd_resp_sendstr(req, response);
     free((void *)response);
-    cJSON_Delete(root);
 
     return ESP_OK;
 }
@@ -530,8 +540,8 @@ static esp_err_t PATCH_update_settings(httpd_req_t * req)
         nvs_config_set_u16(NVS_CONFIG_ASIC_FREQ, item->valueint);
     }
     if ((item = cJSON_GetObjectItem(root, "overheat_mode")) != NULL) {
-        nvs_config_set_u16(NVS_CONFIG_OVERHEAT_MODE, 0);
-    }           
+        nvs_config_set_u16(NVS_CONFIG_OVERHEAT_MODE, item->valueint);
+    }
     if ((item = cJSON_GetObjectItem(root, "autofanspeed")) != NULL) {
         nvs_config_set_u16(NVS_CONFIG_AUTO_FAN_SPEED, item->valueint);
     }
@@ -709,9 +719,13 @@ static esp_err_t GET_system_info(httpd_req_t * req)
     free(board_version);
 
     const char * sys_info = cJSON_Print(root);
+    cJSON_Delete(root);
+    if (sys_info == NULL) {
+        httpd_resp_send_500(req);
+        return ESP_OK;
+    }
     httpd_resp_sendstr(req, sys_info);
     free((char *)sys_info);
-    cJSON_Delete(root);
     return ESP_OK;
 }
 
@@ -740,9 +754,13 @@ static esp_err_t GET_system_asic(httpd_req_t * req)
     cJSON_AddNumberToObject(root, "defaultVoltage", CONFIG_ASIC_VOLTAGE);
 
     const char * response = cJSON_Print(root);
+    cJSON_Delete(root);
+    if (response == NULL) {
+        httpd_resp_send_500(req);
+        return ESP_OK;
+    }
     httpd_resp_sendstr(req, response);
     free((void *)response);
-    cJSON_Delete(root);
     return ESP_OK;
 }
 
@@ -750,14 +768,6 @@ esp_err_t POST_WWW_update(httpd_req_t * req)
 {
     if (is_network_allowed(req) != ESP_OK) {
         return httpd_resp_send_err(req, HTTPD_401_UNAUTHORIZED, "Unauthorized");
-    }
-
-    wifi_mode_t mode;
-    esp_wifi_get_mode(&mode);
-    if (mode == WIFI_MODE_AP || mode == WIFI_MODE_APSTA)
-    {
-        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Not allowed in AP mode");
-        return ESP_OK;
     }
 
     GLOBAL_STATE->SYSTEM_MODULE.is_firmware_update = true;
@@ -781,7 +791,11 @@ esp_err_t POST_WWW_update(httpd_req_t * req)
     }
 
     // Erase the entire www partition before writing
-    ESP_ERROR_CHECK(esp_partition_erase_range(www_partition, 0, www_partition->size));
+    if (esp_partition_erase_range(www_partition, 0, www_partition->size) != ESP_OK) {
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Erase Error");
+        GLOBAL_STATE->SYSTEM_MODULE.is_firmware_update = false;
+        return ESP_OK;
+    }
 
     while (remaining > 0) {
         int recv_len = httpd_req_recv(req, buf, MIN(remaining, sizeof(buf)));
@@ -791,12 +805,15 @@ esp_err_t POST_WWW_update(httpd_req_t * req)
         } else if (recv_len <= 0) {
             snprintf(GLOBAL_STATE->SYSTEM_MODULE.firmware_update_status, 20, "Protocol Error");
             httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Protocol Error");
+            GLOBAL_STATE->SYSTEM_MODULE.is_firmware_update = false;
             return ESP_OK;
         }
 
-        if (esp_partition_write(www_partition, www_partition->size - remaining, (const void *) buf, recv_len) != ESP_OK) {
+        int offset = req->content_len - remaining;
+        if (esp_partition_write(www_partition, offset, (const void *) buf, recv_len) != ESP_OK) {
             snprintf(GLOBAL_STATE->SYSTEM_MODULE.firmware_update_status, 20, "Write Error");
             httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Write Error");
+            GLOBAL_STATE->SYSTEM_MODULE.is_firmware_update = false;
             return ESP_OK;
         }
 
@@ -827,12 +844,12 @@ esp_err_t POST_OTA_update(httpd_req_t * req)
 
     wifi_mode_t mode;
     esp_wifi_get_mode(&mode);
-    if (mode == WIFI_MODE_AP || mode == WIFI_MODE_APSTA)
+    if (mode == WIFI_MODE_AP)
     {
-        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Not allowed in AP mode");
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Not allowed in AP-only mode");
         return ESP_OK;
     }
-    
+
     GLOBAL_STATE->SYSTEM_MODULE.is_firmware_update = true;
     snprintf(GLOBAL_STATE->SYSTEM_MODULE.firmware_update_filename, 20, "bitforgeos.bin");
     snprintf(GLOBAL_STATE->SYSTEM_MODULE.firmware_update_status, 20, "Starting...");
@@ -853,8 +870,10 @@ esp_err_t POST_OTA_update(httpd_req_t * req)
 
             // Serious Error: Abort OTA
         } else if (recv_len <= 0) {
+            esp_ota_abort(ota_handle);
             snprintf(GLOBAL_STATE->SYSTEM_MODULE.firmware_update_status, 20, "Protocol Error");
             httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Protocol Error");
+            GLOBAL_STATE->SYSTEM_MODULE.is_firmware_update = false;
             return ESP_OK;
         }
 
@@ -877,6 +896,7 @@ esp_err_t POST_OTA_update(httpd_req_t * req)
     if (esp_ota_end(ota_handle) != ESP_OK || esp_ota_set_boot_partition(ota_partition) != ESP_OK) {
         snprintf(GLOBAL_STATE->SYSTEM_MODULE.firmware_update_status, 20, "Validation Error");
         httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Validation / Activation Error");
+        GLOBAL_STATE->SYSTEM_MODULE.is_firmware_update = false;
         return ESP_OK;
     }
 
