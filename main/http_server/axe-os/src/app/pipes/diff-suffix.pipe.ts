@@ -13,13 +13,18 @@ export class DiffSuffixPipe implements PipeTransform {
   }
 
   public transform(value: number): string {
-    if (value == null || value < 0) {
+    if (value == null || value < 0 || !isFinite(value) || isNaN(value)) {
+      return 'N/A';
+    }
+
+    if (value === 0) {
       return '0';
     }
 
     const suffixes = ['', 'K', 'M', 'G', 'T', 'P', 'E'];
+    const maxPower = suffixes.length - 1;
 
-    const power = Math.max(0, Math.floor(Math.log10(value) / 3));
+    const power = Math.min(maxPower, Math.max(0, Math.floor(Math.log10(value) / 3)));
     const scaledValue = value / Math.pow(1000, power);
     const suffix = suffixes[power] ?? '';
     const space = suffix ? ' ' : '';
