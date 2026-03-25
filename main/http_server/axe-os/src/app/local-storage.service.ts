@@ -32,7 +32,11 @@ export class LocalStorageService {
     if(item == null || item.length < 1){
       return null;
     }
-    return JSON.parse(item);
+    try {
+      return JSON.parse(item);
+    } catch {
+      return null;
+    }
   }
 
   setNumber(key: string, value: number) {

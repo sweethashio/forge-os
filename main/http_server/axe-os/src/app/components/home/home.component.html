@@ -55,7 +55,7 @@
             </div>
             <div class="metric-content">
                 <div class="metric-value" *ngIf="!info.power_fault">
-                    {{info.power / (info.hashRate/1000) | number: '1.2-2'}} J/TH
+                    {{info.hashRate > 0 ? (info.power / (info.hashRate/1000) | number: '1.2-2') : 'N/A'}} J/TH
                 </div>
                 <div class="metric-value unavailable" *ngIf="info.power_fault">
                     Unavailable

@@ -59,7 +59,7 @@ export class EditComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
   ) {
     // Check URL parameter for settings unlock
-    this.route.queryParams.subscribe(params => {
+    this.route.queryParams.pipe(takeUntil(this.destroy$)).subscribe(params => {
       const urlOcParam = params['oc'] !== undefined;
       if (urlOcParam) {
         // If ?oc is in URL, enable overclock and save to NVS

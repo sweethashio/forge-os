@@ -13,15 +13,23 @@ export class HashSuffixPipe implements PipeTransform {
 
   public transform(value: number): string {
 
-    if (value == null || value < 0) {
-      return '0';
+    if (value == null || value < 0 || !isFinite(value) || isNaN(value)) {
+      return 'N/A';
+    }
+
+    if (value === 0) {
+      return '0.00 H/s';
     }
 
     const suffixes = [' H/s', ' KH/s', ' MH/s', ' GH/s', ' TH/s', ' PH/s', ' EH/s'];
+    const maxPower = suffixes.length - 1;
 
     let power = Math.floor(Math.log10(value) / 3);
     if (power < 0) {
       power = 0;
+    }
+    if (power > maxPower) {
+      power = maxPower;
     }
     const scaledValue = value / Math.pow(1000, power);
     const suffix = suffixes[power];

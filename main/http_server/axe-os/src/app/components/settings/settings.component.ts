@@ -1,9 +1,9 @@
 import { HttpErrorResponse, HttpEventType } from '@angular/common/http';
-import { Component, ViewChild } from '@angular/core';
+import { Component, OnDestroy, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ToastrService } from 'ngx-toastr';
 import { FileUploadHandlerEvent, FileUpload } from 'primeng/fileupload';
-import { map, Observable, shareReplay, startWith } from 'rxjs';
+import { map, Observable, shareReplay, startWith, Subject, takeUntil } from 'rxjs';
 import { GithubUpdateService } from 'src/app/services/github-update.service';
 import { LoadingService } from 'src/app/services/loading.service';
 import { SystemService } from 'src/app/services/system.service';
@@ -14,7 +14,7 @@ import { eASICModel } from 'src/models/enum/eASICModel';
   templateUrl: './settings.component.html',
   styleUrls: ['./settings.component.scss']
 })
-export class SettingsComponent {
+export class SettingsComponent implements OnDestroy {
 
   public form!: FormGroup;
 
@@ -29,6 +29,8 @@ export class SettingsComponent {
   public latestRelease$: Observable<any>;
 
   public info$: Observable<any>;
+
+  private destroy$ = new Subject<void>();
 
   @ViewChild('firmwareUpload') firmwareUpload!: FileUpload;
   @ViewChild('websiteUpload') websiteUpload!: FileUpload;
@@ -51,7 +53,7 @@ export class SettingsComponent {
     this.info$ = this.systemService.getInfo().pipe(shareReplay({refCount: true, bufferSize: 1}))
 
 
-      this.info$.pipe(this.loadingService.lockUIUntilComplete())
+      this.info$.pipe(this.loadingService.lockUIUntilComplete(), takeUntil(this.destroy$))
       .subscribe(info => {
         this.ASICModel = info.ASICModel;
         this.form = this.fb.group({
@@ -75,7 +77,8 @@ export class SettingsComponent {
         });
 
         this.form.controls['autofanspeed'].valueChanges.pipe(
-          startWith(this.form.controls['autofanspeed'].value)
+          startWith(this.form.controls['autofanspeed'].value),
+          takeUntil(this.destroy$)
         ).subscribe(autofanspeed => {
           if (autofanspeed) {
             this.form.controls['manualFanSpeed'].disable();
@@ -86,6 +89,12 @@ export class SettingsComponent {
       });
 
   }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   public updateSystem() {
 
     const form = this.form.getRawValue();
